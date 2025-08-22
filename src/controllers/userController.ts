@@ -1,7 +1,4 @@
 import { Request, Response } from 'express';
-import {
-  createUserService,
-} from '../services/userService';
 import User from '../models/User';
 import asyncHandler from "../utils/asyncHandler";
 import bcrypt from "bcryptjs";
@@ -14,38 +11,6 @@ const handleError = (res: Response, error: unknown) => {
   const message = error instanceof Error ? error.message : 'An unexpected error occurred';
   res.status(400).json({ error: message });
 };
-
-// Create a new user
-export const createUser = async (req: Request, res: Response) => {
-  try {
-    const user = await createUserService(req.body);
-    res.status(201).json(user);
-  } catch (error) {
-    handleError(res, error);
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -87,18 +52,6 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 export const changePassword = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params;
   const { currentPassword, newPassword, confirmPassword } = req.body;
@@ -133,8 +86,6 @@ if (!user) {
     res.status(401);
     throw new Error("Current password is incorrect");
   }
-
-
 
 
 
@@ -178,7 +129,6 @@ console.log("After Saving - Password in DB:", user.password);
 });
 
 
-
   
   export const updatePhoneNumber = asyncHandler(async (req: Request, res: Response) => {
     const { userId } = req.params;
@@ -205,8 +155,6 @@ console.log("After Saving - Password in DB:", user.password);
       res.status(500).json({ message: "Failed to update phone number." });
     }
   });
-
-
 
 
 
@@ -259,19 +207,6 @@ export const getAllUsers = asyncHandler(async (_req: Request, res: Response) => 
     });
   }
 });
-
-
-
-
-
-
-
-
-// Update Bio
-
-
-
-
 
 
 

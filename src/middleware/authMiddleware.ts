@@ -71,6 +71,9 @@ export const authMiddleware = asyncHandler(async (req: Request, res: Response, n
   }
 });
 
+
+
+
 // Middleware to check if the user is a super admin
 export const isSuperAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -98,6 +101,9 @@ export const isAdmin = asyncHandler(async (req: Request, res: Response, next: Ne
     res.status(500).json({ message: "Error verifying admin access", error: error.message });
   }
 });
+
+
+
 
 const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
   console.log('🔒 PROTECT MIDDLEWARE CALLED for:', req.path);
@@ -204,16 +210,6 @@ export { protect };
 
 
 
-
-
-
-
-
-
-
-
-
-
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -235,132 +231,3 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   }
 }; 
 
-
-// export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const token = req.header("Authorization")?.replace("Bearer ", "");
-//     if (!token) {
-//       throw new Error("Authentication required.");
-//     }
-
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET) as { _id: string };
-//     const user = await User.findById(decoded._id);
-
-//     if (!user) {
-//       throw new Error("User not found.");
-//     }
-
-//     req.user = user; // Attach the user to the request object
-//     next();
-//   } catch (error) {
-//     res.status(401).json({ message: "Please authenticate.", error: error.message });
-//   }
-// };
-
-// // Extend Express Request type to include user
-// declare global {
-//   namespace Express {
-//     interface Request {
-//       user?: {
-//         _id: mongoose.Types.ObjectId;
-//         email: string;
-//         role: string;
-//         isVerified: boolean;
-//         isSuperAdmin?: boolean;
-//         isAdmin?: boolean;
-//         [key: string]: any;
-//       };
-//     }
-//   }
-// }
-
-// /**
-//  * Middleware to verify JWT token and authenticate user
-//  */
-// export const authMiddleware = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-//   let token: string | undefined;
-
-//   // Check if token exists in the authorization header
-//   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-//     token = req.headers.authorization.split(" ")[1];
-//   }
-
-//   if (!token) {
-//     return res.status(401).json({ success: false, message: "Not authorized, no token provided." });
-//   }
-
-//   try {
-//     // Verify the token
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-//     // Find the user in the database
-//     const user = await AdminUser.findById(decoded.id).select("-password");
-
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: "User not found." });
-//     }
-
-//     // Attach the user object to the request
-//     req.user = user;
-//     next();
-//   } catch (error: any) {
-//     console.error("Error in authMiddleware:", error.message);
-//     res.status(401).json({ success: false, message: "Not authorized, invalid token." });
-//   }
-// });
-
-// /**
-//  * Middleware to check if the user is a super admin
-//  */
-// export const isSuperAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-//   if (!req.user?.isSuperAdmin) {
-//     return res.status(403).json({ success: false, message: "Access denied. Only super admins can perform this action." });
-//   }
-//   next();
-// });
-
-// /**
-//  * Middleware to check if the user is an admin (regular or super admin)
-//  */
-// export const isAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-//   if (!req.user?.isAdmin && !req.user?.isSuperAdmin) {
-//     return res.status(403).json({ success: false, message: "Access denied. You are not authorized to perform this action." });
-//   }
-//   next();
-// });
-
-// /**
-//  * Middleware to check if the user is logged in (general authentication)
-//  */
-// export const protect = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-//   let token: string | undefined;
-
-//   // Check if token exists in the authorization header
-//   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-//     token = req.headers.authorization.split(" ")[1];
-//   }
-
-//   if (!token) {
-//     return res.status(401).json({ success: false, message: "Not authorized, no token provided." });
-//   }
-
-//   try {
-//     // Verify the token
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-//     // Find the user in the database
-//     const user = await AdminUser.findById(decoded.id).select("-password");
-
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: "User not found." });
-//     }
-
-//     // Attach the user object to the request
-//     req.user = user;
-//     next();
-//   } catch (error: any) {
-//     console.error("Error in protect middleware:", error.message);
-//     res.status(401).json({ success: false, message: "Not authorized, invalid token." });
-//   }
-// });
-// });

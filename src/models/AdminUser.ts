@@ -2,31 +2,10 @@
 import { Schema, model, Document, Types } from "mongoose";
 import bcrypt from "bcryptjs";
 
-// Define the ILoginHistory interface
-export interface ILoginHistory {
-  timestamp: Date; // Last seen timestamp
-  device: string; // Device information
-  ip: string; // IP address
-  country?: string; // Country
-  state?: string; // State
-  city?: string; // City
-  location: string; // Login location
-}
 
 
 
 
-// LoginHistory Schema
-const loginHistorySchema = new Schema<ILoginHistory>(
-  {
-    timestamp: { type: Date, default: Date.now }, // Login timestamp
-    device: { type: String }, // Device information
-    ip: { type: String }, // IP address
-    country: { type: String }, // Country
-    state: { type: String }, // State
-    city: { type: String }, // City
-  }
-);
 
 
 
@@ -42,7 +21,6 @@ export interface IAdminUser extends Document {
   created_at: Date; // Creation timestamp
   updated_at: Date; // Last update timestamp
   createdBy: Types.ObjectId; // ID of the admin who created this admin
-  loginHistory: ILoginHistory[]; // Array of login history
   lastLogin: Date;
   comparePassword(candidatePassword: string): Promise<boolean>; // Method to compare passwords
 }
@@ -57,7 +35,7 @@ const adminUserSchema = new Schema<IAdminUser>(
     password: { type: String, required: true }, // Password (required)
     isAdmin: { type: Boolean, default: false }, // Default to false
     isSuperAdmin: { type: Boolean, default: false }, // Default to false
-    loginHistory: [loginHistorySchema], // Array of login history
+    
     lastLogin: { type: Date }, // Last login timestamp
     createdBy: { type: Schema.Types.ObjectId, ref: "AdminUser", }, // ID of the creator (required)
   },

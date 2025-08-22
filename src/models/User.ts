@@ -6,10 +6,6 @@ import mongoose, { Schema, model, Document} from "mongoose";
 
 
 
-
-
-
-
 export interface IUser extends Document {
   _id: string; // MongoDB ID
   phone_number: string; // User's phone number

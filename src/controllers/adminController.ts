@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import AdminUser from "../models/AdminUser";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import asyncHandler from "../utils/asyncHandler";
 //===================================================================================================================================================
@@ -41,21 +40,6 @@ export const loginAdmin = asyncHandler(async (req: Request, res: Response) => {
     );
 
 
-    // Get the user's IP address and device info
-    const ip = req.ip || req.socket.remoteAddress || "::1";
-    const device = req.headers['user-agent'] || 'Unknown Device';
-
-    // Add login history entry (without geolocation)
-    admin.loginHistory.push({
-      timestamp: new Date(),
-      device,
-      ip,
-      country: "Unknown",
-      state: "Unknown", 
-      city: "Unknown",
-      location: "Unknown", // Simplified location tracking
-    });
-    await admin.save();
 
     // Return the token and admin details
     res.status(200).json({
@@ -76,38 +60,6 @@ export const loginAdmin = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-
-
-
-
-
-
-
-export const getAdminLoginHistory = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params; // Get the admin ID from the request parameters
-
-  try {
-    // Validate the admin ID
-    if (!id) {
-      return res.status(400).json({ message: "Admin ID is required." });
-    }
-
-    // Find the admin by ID
-    const admin = await AdminUser.findById(id).select("loginHistory"); // Only fetch the loginHistory field
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found." });
-    }
-
-    // Return the login history
-    res.status(200).json({
-      message: "Login history retrieved successfully",
-      loginHistory: admin.loginHistory,
-    });
-  } catch (error: any) {
-    console.error("Error fetching login history:", error.message);
-    res.status(500).json({ message: "Error fetching login history", error: error.message });
-  }
-});
 
 
 
@@ -168,19 +120,6 @@ export const createAdmin = asyncHandler(async (req: Request, res: Response) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Fetch all admins
 export const fetchAdmins = asyncHandler(async (_: Request, res: Response) => {
   try {
@@ -191,68 +130,6 @@ export const fetchAdmins = asyncHandler(async (_: Request, res: Response) => {
     res.status(500).json({ message: "Error fetching admins", error: error.message });
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-// Remove an admin (only super admin can do this)
-export const removeAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  try {
-    // Ensure user is authenticated and is a super admin
-    if (!req.user?.isSuperAdmin) {
-      return res.status(403).json({ message: "Only super admins can remove admins." });
-    }
-
-    // Find and delete the admin
-    const deletedAdmin = await AdminUser.findByIdAndDelete(id);
-    if (!deletedAdmin) {
-      return res.status(404).json({ message: "Admin not found." });
-    }
-
-    res.status(200).json({ message: "Admin removed successfully", deletedAdmin });
-  } catch (error: any) {
-    console.error("Error removing admin:", error.message);
-    res.status(500).json({ message: "Error removing admin", error: error.message });
-  }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Fetch all super admins
-export const fetchSuperAdmins = asyncHandler(async (_: Request, res: Response) => {
-  try {
-    const superAdmins = await AdminUser.find({ isSuperAdmin: true });
-    res.status(200).json({ superAdmins });
-  } catch (error: any) {
-    console.error("Error fetching super admins:", error.message);
-    res.status(500).json({ message: "Error fetching super admins", error: error.message });
-  }
-});
-
-
-
-
-
 
 
 
@@ -276,44 +153,6 @@ export const logoutAdmin = asyncHandler(async (_: Request, res: Response) => {
 
 
 
-export const updateAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params; // ID of the admin to update
-  const { first_name, middle_name, surname, phone_number, password, role } = req.body;
-
-  try {
-    // Ensure the requester is authenticated and is a super admin
-    if (!req.user || !req.user.isSuperAdmin) {
-      return res.status(403).json({ message: "Only super admins can update admins." });
-    }
-
-    // Find the admin to update
-    const adminToUpdate = await AdminUser.findById(id);
-    if (!adminToUpdate) {
-      return res.status(404).json({ message: "Admin not found." });
-    }
-
-    // Update the admin's details
-    if (first_name) adminToUpdate.first_name = first_name;
-    if (middle_name) adminToUpdate.middle_name = middle_name;
-    if (surname) adminToUpdate.surname = surname;
-    if (phone_number) adminToUpdate.phone_number = phone_number;
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      adminToUpdate.password = hashedPassword;
-    }
-    if (role) {
-      adminToUpdate.isAdmin = role === "admin";
-      adminToUpdate.isSuperAdmin = role === "superadmin";
-    }
-
-    // Save the updated admin
-    await adminToUpdate.save();
-    res.status(200).json({ message: "Admin updated successfully", admin: adminToUpdate });
-  } catch (error: any) {
-    console.error("Error updating admin:", error.message);
-    res.status(500).json({ message: "Error updating admin", error: error.message });
-  }
-});
 
 
 
@@ -326,97 +165,3 @@ export const updateAdmin = asyncHandler(async (req: Request, res: Response) => {
 
 
 
-export const getAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params; // ID of the admin to fetch
-
-  try {
-    // Ensure the requester is authenticated (either admin or super admin)
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized. Please log in." });
-    }
-
-    // Find the admin by ID
-    const admin = await AdminUser.findById(id);
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found." });
-    }
-
-    // // Ensure the requester is either a super admin or the admin themselves
-    // if (!req.user.isSuperAdmin && req.user._id.toString() !== admin._id.toString()) {
-    //   return res.status(403).json({ message: "You do not have permission to view this admin." });
-    // }
-
-    // Return the admin's details (excluding sensitive information like password)
-    const adminDetails = {
-      _id: admin._id,
-      first_name: admin.first_name,
-      middle_name: admin.middle_name,
-      surname: admin.surname,
-      phone_number: admin.phone_number,
-      isAdmin: admin.isAdmin,
-      isSuperAdmin: admin.isSuperAdmin,
-      // createdBy: admin.createdBy,
-      created_at: admin.created_at,
-      updated_at: admin.updated_at,
-    };
-
-    res.status(200).json({ message: "Admin fetched successfully", admin: adminDetails });
-  } catch (error: any) {
-    console.error("Error fetching admin:", error.message);
-    res.status(500).json({ message: "Error fetching admin", error: error.message });
-  }
-});
-
-export const changeAdminPassword = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { currentPassword, newPassword } = req.body;
-
-  try {
-    // Ensure the requester is authenticated
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized. Please log in." });
-    }
-
-    // Find the admin and explicitly type it
-    const admin = await AdminUser.findById(id).exec() as any;
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found." });
-    }
-
-    // If the requester is not a super admin, they can only change their own password
-    if (!req.user.isSuperAdmin && req.user._id.toString() !== admin._id.toString()) {
-      return res.status(403).json({ message: "You can only change your own password." });
-    }
-
-    // If current password is provided, verify it
-    if (currentPassword) {
-      const isMatch = await admin.comparePassword(currentPassword);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Current password is incorrect." });
-      }
-    }
-
-    // Validate new password
-    if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ message: "New password must be at least 6 characters long." });
-    }
-
-
-    // Hash the new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-
-    console.log("New Password:", newPassword);
-    console.log("Hashed Password:", hashedPassword);
-    // Hash and update the new password
-    
-    admin.password = newPassword;
-    await admin.save({ validateBeforeSave: false });
-
-    res.status(200).json({ message: "Password updated successfully" });
-  } catch (error: any) {
-    console.error("Error changing admin password:", error.message);
-    res.status(500).json({ message: "Error changing password", error: error.message });
-  }
-});
