@@ -41,28 +41,6 @@ const io = new Server(server, {
   }
 });
 
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-
-  // Join admin room for real-time updates
-  socket.on('join-admin-room', () => {
-    socket.join('admin-room');
-    console.log('Admin joined admin room');
-  });
-
-  // Join user room for user-specific updates
-  socket.on('join-user-room', (userId) => {
-    socket.join(`user-${userId}`);
-    console.log(`User ${userId} joined user room`);
-  });
-
-
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
-});
 
 // Make io available globally for other modules
 declare global {
@@ -72,18 +50,8 @@ global.io = io;
 
 
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || CONFIG.CORS_ORIGINS.includes(origin)) {
-        callback(null, true); // Allow the request
-      } else {
-        callback(new Error("Not allowed by CORS")); // Block the request
-      }
-    },
-    credentials: true, // Allow cookies and credentials
-  })
-);
+app.use(cors({ origin: true, credentials: true }));
+
 
 app.use(express.json()); // Parse JSON request bodies
 
