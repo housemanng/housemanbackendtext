@@ -41,11 +41,7 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Password must not be more than 10 characters." });
     }
 
-    // // Validate role
-    // const allowedRoles = ["landlord", "tenant", "agent" , "user"];
-    // if (!role || typeof role !== "string" || !allowedRoles.includes(role)) {
-    //   return res.status(400).json({ error: "Role is required and must be one of: landlord, tenant, agent." });
-    // }
+    
 
     // Validate occupation (optional)
     if (occupation && typeof occupation !== "string") {
@@ -94,30 +90,8 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
     const user: IUser = new User({ phone_number, email, password, occupation, sex });
     await user.save();
 
-    // Create initial subscription for the new user
-    const Subscription = require('../models/subscription').default;
-    const AdminSettings = require('../models/adminSettings').default;
-    
-    // Get admin settings for the annual fee
-    const adminSettings = await AdminSettings.findOne();
-    const annualFee = adminSettings?.AnnualFee || 0;
-
-    // Create initial subscription document
-    const initialSubscription = new Subscription({
-      user: user._id,
-      subscriptionStatus: false,
-      lastRenewalDate: new Date(),
-      nextRenewalDate: new Date(),
-      subscriptionType: 'Standard',
-      amount: annualFee
-    });
-
-    await initialSubscription.save();
-
-    // Update user with the subscription reference
-    await User.findByIdAndUpdate(user._id, {
-      $push: { subscriptions: initialSubscription._id }
-    });
+  
+   
 
     // Generate a JWT token
     const token = generateToken(user._id.toString());
